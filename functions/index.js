@@ -876,7 +876,7 @@ exports.autoSendNotificationThuoc = onSchedule("every 1 minutes", async () => {
         if (userDoc.exists) {
           title = "通知";
           body = `提醒您，您的藥物 ${data.medication_name} 將於 ` +
-            `${data.scheduled_date} 到期，還有${numberDate}`+
+            `${data.scheduled_date} 到期，還有${numberDate}` +
             `天就到期了，請記得${data.scheduled_time}要吃藥喔，請及時處理。`;
 
           senNotificationData = await
@@ -910,9 +910,9 @@ exports.autoSendNotificationThuoc = onSchedule("every 1 minutes", async () => {
       if ((data.isShowNotification === false &&
         isCurrentTimeNear(data.scheduled_time, 3)) ||
         (data.isShowNotification === true &&
-        isCurrentTimeNear(data.scheduled_time, 3)&&
-        getDayStatusFromTimestamp(data.updatedAt)
-            .status === "expired")
+          isCurrentTimeNear(data.scheduled_time, 3) &&
+          getDayStatusFromTimestamp(data.updatedAt)
+              .status === "expired")
       ) {
         userDoc = await dataUserAdmin("users",
             "", "", "", 1, data.user_id);
@@ -1009,8 +1009,8 @@ exports.autoSendNotificationVaccin = onSchedule("every 1 minutes", async () => {
     } else if (numberDate === 0) {
       if (data.isShowNotification === false ||
         (data.isShowNotification === true &&
-        getDayStatusFromTimestamp(data.updatedAt)
-            .status === "expired")
+          getDayStatusFromTimestamp(data.updatedAt)
+              .status === "expired")
       ) {
         userDoc = await dataUserAdmin("users",
             "", "", "", 1, data.created_by_id);
@@ -1079,7 +1079,7 @@ function getDayStatusFromTimestamp(timestamp) {
 
   const diffDays = Math.floor(
       (today.getTime() - targetDate.getTime()) /
-      (1000 * 60 * 60 * 24),
+    (1000 * 60 * 60 * 24),
   );
 
   if (diffDays === 0) {
@@ -1145,7 +1145,7 @@ function daysUntil(dateString) {
   target.setHours(0, 0, 0, 0);
 
   return Math.ceil((target.getTime() -
-  today.getTime()) / (1000 * 60 * 60 * 24));
+    today.getTime()) / (1000 * 60 * 60 * 24));
 }
 /**
 * @param {string} dateString Firestore Timestamp
@@ -1329,7 +1329,68 @@ async function updateBookingStatus() {
           .collection("bookings")
           .doc(data.id);
 
+    const listUpdate = [];
+    const listUpdate2 = [];
     const doc = await ref.get();
+    const dataListBookingPhu = data.additional_dates || [];
+    const dataListBookingAdditional =
+    data.additional_range_bookings || [];
+    if (dataListBookingAdditional.length > 0) {
+      for (const dataListBooking of dataListBookingAdditional) {
+        if ((data.status === "payment_pending" ||
+          data.status === "pending" ||
+          data.status === "deposit_paid") &&
+          dataListBooking.isShowNotification === true) {
+          if (doc.exists) {
+            dataListBooking.isShowNotification = false;
+          }
+        }
+
+        if (data.status !== "payment_pending" &&
+          data.status !== "pending" &&
+          data.status !== "deposit_paid" &&
+          data.status !== "completed" &&
+          data.status !== "in_progress" &&
+          data.status !== "cancelled" &&
+          dataListBooking.isShowNotification2 === true) {
+          dataListBooking.isShowNotification2 = false;
+        }
+        listUpdate2.push(dataListBooking);
+      }
+
+      const cleanData = mapData(
+          {id: data.id,
+            additional_range_bookings: listUpdate2,
+          });
+
+      await ref.update(cleanData);
+    }
+    if (dataListBookingPhu.length > 0) {
+      for (const additionalDate of dataListBookingPhu) {
+        if ((data.status === "payment_pending" ||
+          data.status === "pending" ||
+          data.status === "deposit_paid") &&
+          additionalDate.isShowNotification === true) {
+          if (doc.exists) {
+            additionalDate.isShowNotification = false;
+          }
+        }
+
+        if (data.status !== "payment_pending" &&
+          data.status !== "pending" &&
+          data.status !== "deposit_paid" &&
+          data.status !== "completed" &&
+          data.status !== "in_progress" &&
+          data.status !== "cancelled" &&
+          additionalDate.isShowNotification2 === true) {
+          additionalDate.isShowNotification2 = false;
+        }
+        listUpdate.push(additionalDate);
+      }
+      const cleanData = mapData({id: data.id, additional_dates: listUpdate});
+
+      await ref.update(cleanData);
+    }
     if ((data.status === "payment_pending" ||
       data.status === "pending" ||
       data.status === "deposit_paid") && data.isSend === true) {
@@ -1412,6 +1473,196 @@ exports.autoCheck = onSchedule("every 1 minutes", async () => {
 
       const doc = await ref.get();
 
+
+      console.log("Data Test additional_dates, ", data);
+      const additionalDates = data.additional_dates || [];
+      const additionalrangebookings =
+        data.additional_range_bookings || [];
+      const listUpdate = [];
+      const listUpdate2 = [];
+
+      // ------------------ Additional Range Bookings ------------------
+      if (additionalrangebookings.length > 0) {
+        for (const additionalrangebooking of additionalrangebookings) {
+          console.log("Đã vào 1 Data");
+
+          const dataDateCheck =
+            getDayStatusFromString(additionalrangebooking.start_date);
+          let body = `您三天後有一個額外的預約。`;
+          const title = "通知";
+
+          console.log("Data Check Date Test: ", dataDateCheck);
+          if (dataDateCheck.status === "UPCOMING" &&
+            dataDateCheck.diffDays <= 3) {
+            if (doc.exists) {
+              console.log("Đã vào 2 Data");
+              if ((data.status === "payment_pending" ||
+                data.status === "pending" ||
+                data.status === "deposit_paid") &&
+                additionalrangebooking.isShowNotification === false) {
+                body = `您${dataDateCheck.diffDays}天後有一筆連續預約，請於使用服務前完成付款`;
+
+                console.log("Đã vào 3 Data");
+                const check = await senNotificationFunc(
+                    userOne,
+                    title,
+                    body,
+                    1,
+                    "/Bookings",
+                );
+                additionalrangebooking.isShowNotification = true;
+
+
+                console.log("Data Check 1: ", check);
+              }
+
+              if (
+                dataDateCheck.status === "UPCOMING" &&
+                dataDateCheck.diffDays === 1
+              ) {
+                if (data.status !== "payment_pending" &&
+                  data.status !== "pending" &&
+                  data.status !== "deposit_paid" &&
+                  data.status !== "cancelled" &&
+                  data.status !== "completed" &&
+                  data.status !== "in_progress" &&
+                  additionalrangebooking.isShowNotification2 === false) {
+                  body = "親愛的飼主您好，提醒您，您明天有一筆連續預約";
+                  console.log("Đã vào 6 Data");
+                  await senNotificationFunc(
+                      userOne,
+                      title,
+                      body,
+                      1,
+                      "/Bookings",
+                  );
+
+                  const userSite = await dataUserSitter("users", "email",
+                      "==", data.emailSitter);
+
+                  const userDoc = await dataUserAdmin("users", "role", "==",
+                      "admin", 2, "");
+
+                  if (!userDoc.empty) {
+                    body = "您的連續預約將於明天開始";
+                    await senNotificationFunc(userDoc,
+                        title, body, 2, "/Bookings");
+                  }
+
+
+                  if (!userSite.empty) {
+                    body = "您明天有一筆客戶新增的預約";
+                    await senNotificationFunc(userSite.docs[0], title,
+                        body, 1, "/MyAssignedBookings");
+                  }
+
+                  additionalrangebooking.isShowNotification2 = true;
+                }
+              }
+            }
+          }
+
+          listUpdate2.push(additionalrangebooking);
+        }
+
+        const cleanData = mapData({
+          id: data.id,
+          additional_range_bookings: listUpdate2,
+        });
+        await ref.update(cleanData);
+      }
+
+      // ------------------ Additional Dates ------------------
+      if (additionalDates.length > 0) {
+        for (const additionalDate of additionalDates) {
+          console.log("Đã vào 1 Data");
+
+          const dataDateCheck =
+            getDayStatusFromString(additionalDate.weeklyStartDate);
+          let body = `您三天後有一個額外的預約。`;
+          const title = "通知";
+
+          console.log("Data Check Date Test: ", dataDateCheck);
+          if (dataDateCheck.status === "UPCOMING" &&
+            dataDateCheck.diffDays <= 3) {
+            if (doc.exists) {
+              console.log("Đã vào 2 Data");
+              if ((data.status === "payment_pending" ||
+                data.status === "pending" ||
+                data.status === "deposit_paid") &&
+                additionalDate.isShowNotification === false) {
+                body = `您${dataDateCheck.diffDays}天後有一個額外的預約，請於使用服務前先完成付款，謝謝`;
+
+                console.log("Đã vào 3 Data");
+                const check = await senNotificationFunc(
+                    userOne,
+                    title,
+                    body,
+                    1,
+                    "/Bookings",
+                );
+                additionalDate.isShowNotification = true;
+
+
+                console.log("Data Check 1: ", check);
+              }
+
+              if (
+                dataDateCheck.status === "UPCOMING" &&
+                dataDateCheck.diffDays === 1
+              ) {
+                if (data.status !== "payment_pending" &&
+                  data.status !== "pending" &&
+                  data.status !== "deposit_paid" &&
+                  data.status !== "cancelled" &&
+                  data.status !== "completed" &&
+                  data.status !== "in_progress" &&
+                  additionalDate.isShowNotification2 === false) {
+                  body = "親愛的飼主您好，提醒您，您預約的服務將於" +
+                    "明天開始，請留意相關安排。";
+                  console.log("Đã vào 6 Data");
+                  await senNotificationFunc(
+                      userOne,
+                      title,
+                      body,
+                      1,
+                      "/Bookings",
+                  );
+
+                  const userSite = await dataUserSitter("users", "email",
+                      "==", data.emailSitter);
+
+                  const userDoc = await dataUserAdmin("users", "role", "==",
+                      "admin", 2, "");
+
+                  if (!userDoc.empty) {
+                    body = "您明天將開始一項由客戶新增的預約服務";
+                    await senNotificationFunc(userDoc,
+                        title, body, 2, "/Bookings");
+                  }
+
+
+                  if (!userSite.empty) {
+                    body = "您明天有一筆客戶新增的預約";
+                    await senNotificationFunc(userSite.docs[0], title,
+                        body, 1, "/MyAssignedBookings");
+                  }
+
+                  additionalDate.isShowNotification2 = true;
+                }
+              }
+            }
+          }
+
+          listUpdate.push(additionalDate);
+        }
+
+        const cleanData = mapData({
+          id: data.id,
+          additional_dates: listUpdate,
+        });
+        await ref.update(cleanData);
+      }
       const dataDateCheck = getDayStatusFromString(data.start_date);
 
       console.log("Date dataDateCheck: ", dataDateCheck);
