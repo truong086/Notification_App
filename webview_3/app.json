@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "寵物保姆－幫您呵護妳的毛孩",
+    "slug": "webview_3",
+    "version": "3.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/anh_notification.jpg",
+    "scheme": "webview3",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.base69873417478a19e360c5cfbf.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "需要使用相機拍攝並上傳照片。",
+        "NSPhotoLibraryUsageDescription": "需要存取照片庫以選擇並上傳照片。",
+        "NSPhotoLibraryAddUsageDescription": "需要將照片儲存至您的照片庫。"
+      },
+      "usesAppleSignIn": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/anh_notification.jpg",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.truong0806.webview_3"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/anh_notification.jpg",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "owner": "helloworld2",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "92692a7d-98b6-4f9b-aa05-ebd45e557270"
+      }
+    }
+  }
+}
