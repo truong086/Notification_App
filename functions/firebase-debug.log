@@ -1,0 +1,19 @@
+[debug] [2026-08-27T15:30:08.330Z] ----------------------------------------------------------------------
+[debug] [2026-08-27T15:30:08.331Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\haune\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js use --debug
+[debug] [2026-08-27T15:30:08.332Z] CLI Version:   15.23.0
+[debug] [2026-08-27T15:30:08.332Z] Platform:      win32
+[debug] [2026-08-27T15:30:08.332Z] Node Version:  v22.16.0
+[debug] [2026-08-27T15:30:08.332Z] Detected Agent: unknown
+[debug] [2026-08-27T15:30:08.332Z] Time:          Thu Aug 27 2026 23:30:08 GMT+0800 (台北標準時間)
+[debug] [2026-08-27T15:30:08.332Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-27T15:30:08.341Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-08-27T15:30:08.512Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-27T15:30:08.512Z] > authorizing via signed-in user (vantruong08062002@gmail.com)
+[info] Active Project: truong-08062002
+[info] 
+[info] Project aliases for C:\Users\haune:
+[info] 
+[info] * default (truong-08062002)
+[info] 
+[info] Run firebase use --add to define a new project alias.
